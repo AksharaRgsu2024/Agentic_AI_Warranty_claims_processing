@@ -143,21 +143,119 @@ LLM-generated recommendation with validated fields matching HumanReviewPacket st
 
 ## Workflow Pipeline
 
+### Orchestration Flow Diagram
+
+```mermaid
+flowchart TD
+    Start(["📨 Start: Email Received"]) --> LoadEmail["Load Email from Mailbox"]
+    LoadEmail --> Triage["📧 Email Triage Agent<br/>(Groq LLM)"]
+    
+    Triage --> TriageDecision{"Category?"}
+    
+    TriageDecision -->|Spam| DisplaySpam["🚫 Display Spam Alert"]
+    DisplaySpam --> End1(["✓ End: Spam Filtered"])
+    
+    TriageDecision -->|Non-Warranty| DisplayNW["💬 Display Non-Warranty<br/>Inquiry"]
+    DisplayNW --> End2(["✓ End: Info Provided"])
+    
+    TriageDecision -->|Warranty Claim| RAGStart["🔍 RAG Recommendation<br/>Agent"]
+    
+    RAGStart --> ExtractCat["1. Extract Category<br/>& Product Model"]
+    ExtractCat --> RetrievePolicies["2. Retrieve Policy<br/>Documents<br/>(Pinecone VectorDB)"]
+    RetrievePolicies --> AnalyzePolicy["3. Analyze Against<br/>Policy<br/>(Groq LLM)"]
+    AnalyzePolicy --> GenRec["4. Generate<br/>Recommendation<br/>(JSON Structure)"]
+    GenRec --> CreatePacket["5. Create Review<br/>Packet<br/>(HumanReviewPacket)"]
+    
+    CreatePacket --> HumanReview["👤 Human Review<br/>(Interactive)"]
+    
+    HumanReview --> ReviewDecision{"Reviewer<br/>Decision?"}
+    
+    ReviewDecision -->|Approve| DraftApprove["✅ Draft Approval<br/>Email<br/>(Groq LLM)"]
+    DraftApprove --> SaveResponse["💾 Save Response<br/>Email to JSON"]
+    SaveResponse --> RecordDecision["📝 Record Decision<br/>to Audit Log"]
+    RecordDecision --> End3(["✓ End: Approved"])
+    
+    ReviewDecision -->|Reject| DraftReject["❌ Draft Rejection<br/>Email<br/>(Groq LLM)"]
+    DraftReject --> SaveResponse
+    
+    ReviewDecision -->|Escalate| DraftEscalate["⚠️ Draft Escalation<br/>Email<br/>(Groq LLM)"]
+    DraftEscalate --> SaveResponse
+    
+    ReviewDecision -->|Revise| RAGStart
+    
+    RecordDecision --> SummaryGen["📊 Generate Decision<br/>Summary<br/>(Statistics)"]
+    SummaryGen --> End4(["✓ End: Complete"])
+    
+    style Start fill:#e1f5e1
+    style End1 fill:#e1f5e1
+    style End2 fill:#e1f5e1
+    style End3 fill:#e1f5e1
+    style End4 fill:#e1f5e1
+    style DisplaySpam fill:#ffe1e1
+    style DisplayNW fill:#fff5e1
+    style HumanReview fill:#e1e5ff
+    style Triage fill:#e1f5ff
+    style RAGStart fill:#ffe1f5
+    style SaveResponse fill:#e1f5f5
+    style RecordDecision fill:#f5e1ff
 ```
-START
-  ↓
-Email Triage Agent
-  ├→ SPAM → End
-  ├→ Non-Warranty → Display & End
-  └→ Warranty Claim ↓
-    RAG Recommendation Agent
-      ├→ Extract Category
-      ├→ Retrieve Policy Documents
-      ├→ Analyze Against Policy
-      ├→ Generate Recommendation
-      └→ Create Review Packet ↓
-    Human Review (Interactive)
-      ├→ Approve → Draft Response → Save → End
+
+### Process Details
+
+**Phase 1: Email Triage**
+- Analyzes incoming email
+- Categorizes as: Spam, Warranty Claim, or Non-Warranty Inquiry
+- Uses Groq LLM for intelligent classification
+
+**Phase 2: RAG Recommendation** (Warranty Claims Only)
+1. **Extract Category**: Identifies product model and issue type
+2. **Retrieve Policies**: Queries Pinecone vector DB for relevant warranty policies
+3. **Analyze Policy**: LLM analyzes claim against retrieved policies
+4. **Generate Recommendation**: Creates structured JSON recommendation
+5. **Create Packet**: Packages recommendation as HumanReviewPacket
+
+**Phase 3: Human Review**
+- Displays AI recommendation to reviewer
+- Options: Approve, Reject, Escalate, or Revise
+- Collects optional feedback and reviewer ID
+
+**Phase 4: Response Generation**
+- Drafts personalized email based on decision
+- Uses Groq LLM for professional communication
+- Saves response to JSON file
+
+**Phase 5: Decision Recording**
+- Records all decisions to audit log
+- Generates summary statistics
+- Tracks approval rates and confidence scores
+
+### Data Flow
+
+```
+Customer Email (JSON)
+    ↓
+    └─→ EmailTriageAgent
+            ├→ Category: warranty/spam/non_warranty
+            ├→ Confidence Score
+            └→ Product Model Extraction
+                ↓
+                └─→ RAGRecommendationAgent (if warranty)
+                        ├→ Policy Documents (from Pinecone)
+                        ├→ Policy Analysis (LLM)
+                        └→ Review Packet (Structured)
+                            ↓
+                            └─→ HumanReviewPacket
+                                    ├→ Claim Validity
+                                    ├→ Warranty Coverage
+                                    ├→ Decision
+                                    ├→ Confidence Score
+                                    ├→ Reasons
+                                    └─→ Next Steps
+                                        ↓
+                                        └─→ Response Email
+                                                ├→ Approval/Rejection/Escalation
+                                                └─→ Audit Log
+```
       ├→ Reject → Abort → End
       └→ Revise → Rerun Workflow
 ```
