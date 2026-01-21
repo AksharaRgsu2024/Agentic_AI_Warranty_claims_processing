@@ -1,0 +1,16 @@
+{
+  "subject": "Motor Failure Within Warranty - BLD-Turbo 2400",
+  "from": "michael.rodriguez@email.com",
+  "date": "2026-06-08",
+  "body": "Hello BreezeLite Support,\n\nI'm writing regarding a motor failure in my BLD-Turbo 2400 hairdryer purchased on May 1, 2026.\n\nAfter just one week of normal use (following all instructions in the manual), the motor started making an unusual grinding noise and eventually stopped working completely. The unit produces no heat or airflow.\n\nI have taken excellent care of the hairdryer - no drops, no water exposure, and no modifications. I've only used it on the recommended settings.\n\nGiven that this is a clear defect in workmanship occurring within the warranty period, I would appreciate your assistance in either repairing or replacing the unit.\n\nI have attached my purchase receipt and photos of the non-functional dryer.\n\nThank you,\nMichael Rodriguez\nmichael.rodriguez@email.com\n+1-555-234-5678",
+  "attachments": [
+    {
+      "file_name": "images/receipt_turbo.png",
+      "content_type": "image/png"
+    },
+    {
+      "file_name": "images/dryer_turbo_2400.png",
+      "content_type": "image/png"
+    }
+  ]
+}

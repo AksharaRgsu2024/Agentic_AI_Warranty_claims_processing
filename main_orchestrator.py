@@ -119,40 +119,45 @@ def rag_recommendation_agent(state: PipelineState) -> PipelineState:
         print(f"  Category: {state['email_info'].get('category')}")
         print(f"  Product Model: {state.get('product_model', 'Unknown')}")
         
-        review_packet = rag_agent.process_claim(state["email_info"])
+        result = rag_agent.process_claim(state["email_info"])
         
-        state["review_packet"] = review_packet.to_dict()
+        # Extract the HumanReviewPacket object from the result dict
+        review_packet_obj = result["review_packet"]
+        
+        state["review_packet"] = review_packet_obj.to_dict()
         state["reviewer_id"] = "AI-Agent"
         state["review_timestamp"] = datetime.now().isoformat()
         
         #evidence info
-        claim_info = state["processed_output"]
-        evidence_info=EvidenceChecklist()
-        evidence_info["SerialNumber"]=claim_info.get("Serial Number")
-        evidence_info["ModelNumber"]=claim_info.get("Product Model")
-        evidence_info["attachments_analysis"]=state["attachment_info"]
-        evidence_info["validity"]=claim_info.get("Claim Validation")
+        email_info = state["email_info"]
+        evidence_info: EvidenceChecklist = {
+            "SerialNumber": email_info.get("Serial Number", "N/A"),
+            "ModelNumber": email_info.get("Product Model", "N/A"),
+            "attachments_analysis": state["attachment_info"],
+            "validity": email_info.get("Claim Validation", "Unknown"),
+        }
+
         
         print("\n" + "="*80)
         print("RAG RECOMMENDATION AGENT OUTPUT")
         print("="*80)
-        print(f"Claim ID: {review_packet.claim_id}")
-        print(f"Claim Validity: {review_packet.claim_validity}")
-        print(f"Warranty Coverage: {review_packet.warranty_coverage}")
-        print(f"Decision: {review_packet.decision}")
-        print(f"Confidence Score: {review_packet.confidence_score:.2f}")
-        print(f"Policy Document: {review_packet.policy_doc_selected}")
+        print(f"Claim ID: {review_packet_obj.claim_id}")
+        print(f"Claim Validity: {review_packet_obj.claim_validity}")
+        print(f"Warranty Coverage: {review_packet_obj.warranty_coverage}")
+        print(f"Decision: {review_packet_obj.decision}")
+        print(f"Confidence Score: {review_packet_obj.confidence_score:.2f}")
+        print(f"Policy Document: {review_packet_obj.policy_doc_selected if hasattr(review_packet_obj, 'policy_doc_selected') else 'N/A'}")
         print(f"\nEvidence Info:")
         print(evidence_info)
-        # evidence = review_packet.evidence_info
+        # evidence = review_packet_obj.evidence_info
         # print(f"  Model Number: {evidence.get('ModelNumber', 'N/A')}")
         # print(f"  Serial Number: {evidence.get('SerialNumber', 'N/A')}")
         # print(f"  Validity: {evidence.get('validity', 'N/A')}")
-        print(f"\nReasons ({len(review_packet.reasons)}):")
-        for i, reason in enumerate(review_packet.reasons, 1):
+        print(f"\nReasons ({len(review_packet_obj.reasons)}):")
+        for i, reason in enumerate(review_packet_obj.reasons, 1):
             print(f"  {i}. {reason}")
-        print(f"\nNext Steps ({len(review_packet.next_steps)}):")
-        for i, step in enumerate(review_packet.next_steps, 1):
+        print(f"\nNext Steps ({len(review_packet_obj.next_steps)}):")
+        for i, step in enumerate(review_packet_obj.next_steps, 1):
             print(f"  {i}. {step}")
         print("="*80 + "\n")
         
@@ -313,10 +318,11 @@ def draft_response(state: PipelineState) -> PipelineState:
     logging.info("✉️  Drafting response email...")
     
     groq_api_key = os.getenv("GROQ_API_KEY")
+    llm=config["MODEL_CONFIG"]["response_drafter_model"]
     llm = ChatGroq(
         temperature=0.7,
         groq_api_key=groq_api_key,
-        model_name="llama-3.1-70b-versatile"
+        model_name=llm
     )
     
     claims_info = state["processed_output"]

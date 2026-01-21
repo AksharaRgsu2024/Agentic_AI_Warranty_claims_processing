@@ -37,6 +37,7 @@ class HumanReviewPacket:
     next_steps: List[str] = field(default_factory=list)  # Follow-up actions or recommended process
 
     # Optional metadata and traceability
+    confidence_score: float = 0.0           # Confidence in recommendation (0-1)
     reviewer_id: Optional[str] = None       # Human reviewer's ID or name
     claim_id: Optional[str] = None          # Unique claim identifier
     review_timestamp: Optional[str] = None  # ISO8601 timestamp of review
@@ -50,6 +51,7 @@ class HumanReviewPacket:
             "decision": self.decision,
             "reasons": self.reasons,
             "next_steps": self.next_steps,
+            "confidence_score": self.confidence_score,
             "reviewer_id": self.reviewer_id,
             "claim_id": self.claim_id,
             "review_timestamp": self.review_timestamp,
@@ -81,8 +83,8 @@ class ClaimRecommendation(BaseModel):
     decision: Literal["Approve Claim", "Reject Claim", "Escalate for Further Review", "Ignore", "Provide Information"] = Field(description="Recommended decision")
     confidence_score: float = Field(description="Confidence in recommendation (0-1)")
     reasons: List[str] = Field(description="Key justifications for the decision")
-    next_steps: List[str] = Field(description="Recommended follow-up actions")
-    notes: str = Field(description="Additional contextual information")
+    next_steps: List[str] = Field(default_factory=list, description="Recommended follow-up actions")
+    notes: str = Field(default="", description="Additional contextual information")
     customer_response: Optional[str] = Field(default=None, description="Direct response to customer for non-warranty inquiries")
 
 
@@ -95,6 +97,7 @@ class RAGRecommendationAgent:
             groq_api_key: Your Groq API key
             model: Groq model to use
         """
+
         self.llm = ChatGroq(
             temperature=0,
             groq_api_key=groq_api_key,
@@ -167,13 +170,14 @@ class RAGRecommendationAgent:
             decision="Ignore",
             reasons=["Email classified as spam"],
             next_steps=["No action required", "Archive/delete email"],
+            confidence_score=1.0,
             reviewer_id="AI-Agent",
             claim_id=f"SPAM-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
             review_timestamp=datetime.now().isoformat(),
             notes="Spam email - no processing needed"
         )
         
-        return {"review_packet": packet.to_dict()}
+        return {"review_packet": packet}
     
     def handle_non_warranty(self, state: RAGState):
         """Handle non-warranty customer inquiries"""
@@ -241,6 +245,7 @@ Please provide a helpful response.""")
                 "Send prepared response to customer" if can_answer else "Forward to product specialist",
                 "Track customer satisfaction" if can_answer else "Provide detailed answer within 24 hours"
             ],
+            confidence_score=0.8 if can_answer else 0.6,
             reviewer_id="AI-Agent",
             claim_id=f"INQUIRY-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
             review_timestamp=datetime.now().isoformat(),
@@ -248,7 +253,7 @@ Please provide a helpful response.""")
         )
         
         return {
-            "review_packet": packet.to_dict(),
+            "review_packet": packet,
             "customer_response": customer_response
         }
     
@@ -338,13 +343,22 @@ Relevant Warranty Policies:
         
         recommendation_prompt = """You are a warranty claim decision specialist. Based on the claim information and policy analysis, provide a structured recommendation.
 
+IMPORTANT: You MUST include ALL the following fields in your response:
+1. claim_validity: Choose from "Valid", "Invalid", "Uncertain", "N/A"
+2. warranty_coverage: Choose from "Covered", "Not Covered", "Partially Covered", "N/A"
+3. decision: Choose from "Approve Claim", "Reject Claim", "Escalate for Further Review", "Ignore", "Provide Information"
+4. confidence_score: A number between 0 and 1 (e.g., 0.85)
+5. reasons: A list of at least 2-3 key justifications (strings)
+6. next_steps: A list of recommended follow-up actions (at least 1-2 items)
+7. notes: A brief summary or important contextual information
+
 Consider:
 - Policy compliance
 - Evidence quality
 - Safety implications
 - Customer service impact
 
-Provide clear decision with justification and next steps."""
+Provide clear, actionable next steps and comprehensive notes."""
 
         context = f"""
 Claim Information:
@@ -370,20 +384,30 @@ Warranty Policies:
         recommendation = state["recommendation"]
         claim_info = state["claim_info"]
         
+        # Ensure next_steps and notes have values
+        next_steps = recommendation.get("next_steps", [])
+        if not next_steps:
+            next_steps = ["Review claim with human agent", "Update customer on status"]
+        
+        notes = recommendation.get("notes", "")
+        if not notes:
+            notes = f"Claim decision: {recommendation['decision']}. Validity: {recommendation['claim_validity']}"
+        
         # Create review packet
         packet = HumanReviewPacket(
             claim_validity=recommendation["claim_validity"],
             warranty_coverage=recommendation["warranty_coverage"],
             decision=recommendation["decision"],
             reasons=recommendation["reasons"],
-            next_steps=recommendation["next_steps"],
+            confidence_score=recommendation.get("confidence_score", 0.5),
+            next_steps=next_steps,
             reviewer_id="AI-Agent",
             claim_id=f"CLAIM-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
             review_timestamp=datetime.now().isoformat(),
-            notes=recommendation["notes"]
+            notes=notes
         )
         
-        return {"review_packet": packet.to_dict()}
+        return {"review_packet": packet}
     
     def _build_workflow(self):
         """Build the LangGraph workflow"""
@@ -444,9 +468,12 @@ Warranty Policies:
             "claim_info": claim_info
         })
         
-        # Convert dict back to HumanReviewPacket
-        packet_dict = state["review_packet"]
-        packet = HumanReviewPacket(**packet_dict)
+        # Handle review_packet - it's already a HumanReviewPacket object from the workflow
+        packet = state["review_packet"]
+        
+        # If it's a dict (for backward compatibility), convert to HumanReviewPacket
+        if isinstance(packet, dict):
+            packet = HumanReviewPacket(**packet)
         
         result = {
             "review_packet": packet,
