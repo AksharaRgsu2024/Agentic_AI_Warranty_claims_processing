@@ -28,6 +28,161 @@ config.read('model_config.ini')
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
 
+# --- Decision Recording Functions ---
+
+def record_triage_decision(email: dict, triage_result: dict, confidence: float) -> dict:
+    """
+    Record the triage decision for an email
+    
+    Args:
+        email: Original customer email
+        triage_result: Triage results from EmailTriageAgent
+        confidence: Confidence score of the triage
+        
+    Returns:
+        Dictionary with recorded triage decision
+    """
+    record = {
+        "timestamp": datetime.now().isoformat(),
+        "email_from": email.get("from", "N/A"),
+        "email_subject": email.get("subject", "N/A"),
+        "email_date": email.get("date", "N/A"),
+        "triage_category": triage_result.get("category", "unknown"),
+        "triage_confidence": confidence,
+        "product_model": triage_result.get("product_model", "N/A"),
+        "issue_description": triage_result.get("issue_description", "N/A")[:200],  # Truncate for readability
+        "reasoning": triage_result.get("reasoning", "N/A")
+    }
+    return record
+
+
+def record_claim_decision(email: dict, triage_result: dict, review_packet: dict, human_response: str = None, status: str = "auto") -> dict:
+    """
+    Record the claim approval/rejection decision
+    
+    Args:
+        email: Original customer email
+        triage_result: Triage results
+        review_packet: Review packet from RAG agent
+        human_response: Human reviewer's decision (if applicable)
+        status: "auto" for AI decision, "human" for human override
+        
+    Returns:
+        Dictionary with recorded claim decision
+    """
+    record = {
+        "timestamp": datetime.now().isoformat(),
+        "decision_status": status,
+        "email_from": email.get("from", "N/A"),
+        "email_subject": email.get("subject", "N/A"),
+        "product_model": triage_result.get("product_model", "N/A"),
+        "claim_id": review_packet.get("claim_id", "N/A"),
+        "triage_category": triage_result.get("category", "N/A"),
+        "claim_validity": review_packet.get("claim_validity", "N/A"),
+        "warranty_coverage": review_packet.get("warranty_coverage", "N/A"),
+        "ai_decision": review_packet.get("decision", "N/A"),
+        "confidence_score": review_packet.get("confidence_score", 0),
+        "human_override": human_response if status == "human" else None,
+        "reasons_count": len(review_packet.get("reasons", [])),
+        "reasons": review_packet.get("reasons", [])[:2],  # First 2 reasons for brevity
+        "notes": review_packet.get("notes", "")[:150]  # Truncate for readability
+    }
+    return record
+
+
+def save_decisions_to_file(decisions: List[dict], filename: str = "decision_log.json") -> None:
+    """
+    Save recorded decisions to a JSON file for analysis
+    
+    Args:
+        decisions: List of decision records
+        filename: Output filename
+    """
+    os.makedirs("decision_logs", exist_ok=True)
+    filepath = os.path.join("decision_logs", filename)
+    
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(decisions, f, indent=2, ensure_ascii=False)
+    
+    logging.info(f"✅ Decisions saved to {filepath}")
+
+
+def generate_decision_summary(decisions: List[dict]) -> dict:
+    """
+    Generate a summary of all decisions made
+    
+    Args:
+        decisions: List of decision records
+        
+    Returns:
+        Dictionary with summary statistics
+    """
+    summary = {
+        "total_emails_processed": len(decisions),
+        "triage_breakdown": {
+            "spam": 0,
+            "warranty": 0,
+            "non_warranty": 0
+        },
+        "claim_decisions": {
+            "approved": 0,
+            "rejected": 0,
+            "escalated": 0,
+            "not_applicable": 0
+        },
+        "confidence_stats": {
+            "average_confidence": 0.0,
+            "highest_confidence": 0.0,
+            "lowest_confidence": 1.0
+        },
+        "human_overrides": 0,
+        "timestamp": datetime.now().isoformat()
+    }
+    
+    if not decisions:
+        return summary
+    
+    confidence_scores = []
+    
+    for decision in decisions:
+        # Count triage categories
+        category = decision.get("triage_category", "unknown")
+        if category in summary["triage_breakdown"]:
+            summary["triage_breakdown"][category] += 1
+        
+        # Count claim decisions
+        ai_decision = decision.get("ai_decision", "").lower()
+        if "approve" in ai_decision:
+            summary["claim_decisions"]["approved"] += 1
+        elif "reject" in ai_decision:
+            summary["claim_decisions"]["rejected"] += 1
+        elif "escalate" in ai_decision:
+            summary["claim_decisions"]["escalated"] += 1
+        else:
+            summary["claim_decisions"]["not_applicable"] += 1
+        
+        # Track confidence scores
+        confidence = decision.get("confidence_score", 0)
+        if confidence > 0:
+            confidence_scores.append(confidence)
+            summary["confidence_stats"]["highest_confidence"] = max(
+                summary["confidence_stats"]["highest_confidence"], confidence
+            )
+            summary["confidence_stats"]["lowest_confidence"] = min(
+                summary["confidence_stats"]["lowest_confidence"], confidence
+            )
+        
+        # Count human overrides
+        if decision.get("decision_status") == "human":
+            summary["human_overrides"] += 1
+    
+    # Calculate average confidence
+    if confidence_scores:
+        summary["confidence_stats"]["average_confidence"] = sum(confidence_scores) / len(confidence_scores)
+    
+    return summary
+
+
 class EvidenceChecklist(TypedDict):
     ModelNumber: str
     SerialNumber: str
@@ -85,8 +240,28 @@ def claim_processing_agent(state: PipelineState) -> PipelineState:
     state["email_info"] = processed_info
     state["processed_output"] = processed_info["processed_output"]
     state["attachment_info"]=processed_info["attachment_analysis"]
-    state["product_model"] = processed_info.get("product_model", "Unknown")
-    state["model_code"] = processed_info.get("model_code", "unknown")
+    
+    # Extract product model from processed_output if not explicitly set
+    product_model = "Unknown"
+    processed_output = processed_info.get("processed_output", "")
+    import re
+    model_patterns = [
+        r"(?:Product\s+)?Model[:\s]+([A-Z]+-\d+(?:\s+[A-Za-z0-9-]*)?)",
+        r"Model[:\s]+([A-Z]+-[\d]+)",
+        r"(\b[A-Z]{3}-\d+\b)",
+    ]
+    for pattern in model_patterns:
+        try:
+            match = re.search(pattern, processed_output, re.IGNORECASE)
+            if match:
+                product_model = match.group(1).strip()
+                logging.info(f"Extracted product model from triage: {product_model}")
+                break
+        except re.error:
+            continue
+    
+    state["product_model"] = product_model
+    state["model_code"] = product_model.split()[0] if product_model != "Unknown" else "unknown"
     
     return state
 
@@ -120,21 +295,32 @@ def rag_recommendation_agent(state: PipelineState) -> PipelineState:
         print(f"  Product Model: {state.get('product_model', 'Unknown')}")
         
         result = rag_agent.process_claim(state["email_info"])
+        logging.info(f"RAG agent result keys: {result.keys()}")
         
         # Extract the HumanReviewPacket object from the result dict
+        if "review_packet" not in result:
+            logging.error(f"RAG agent result missing 'review_packet' key. Keys: {result.keys()}")
+            raise ValueError(f"RAG agent did not return review_packet. Got keys: {result.keys()}")
+        
         review_packet_obj = result["review_packet"]
+        logging.info(f"Review packet type: {type(review_packet_obj)}")
+        logging.info(f"Review packet decision: {review_packet_obj.decision}")
+        logging.info(f"Review packet confidence: {review_packet_obj.confidence_score}")
         
         state["review_packet"] = review_packet_obj.to_dict()
         state["reviewer_id"] = "AI-Agent"
         state["review_timestamp"] = datetime.now().isoformat()
         
-        #evidence info
+        # Evidence info
         email_info = state["email_info"]
+        # Use the product_model from state which was extracted in claim_processing_agent
+        product_model_display = state.get("product_model", "Unknown")
+        
         evidence_info: EvidenceChecklist = {
-            "SerialNumber": email_info.get("Serial Number", "N/A"),
-            "ModelNumber": email_info.get("Product Model", "N/A"),
-            "attachments_analysis": state["attachment_info"],
-            "validity": email_info.get("Claim Validation", "Unknown"),
+            "SerialNumber": email_info.get("serial_number", email_info.get("Serial Number", "N/A")),
+            "ModelNumber": product_model_display,
+            "attachments_analysis": state.get("attachment_info", email_info.get("attachment_analysis", "N/A")),
+            "validity": email_info.get("claim_validation", email_info.get("Claim Validation", "Unknown")),
         }
 
         
@@ -142,17 +328,24 @@ def rag_recommendation_agent(state: PipelineState) -> PipelineState:
         print("RAG RECOMMENDATION AGENT OUTPUT")
         print("="*80)
         print(f"Claim ID: {review_packet_obj.claim_id}")
+        print(f"Product Model: {evidence_info.get('ModelNumber', 'Unknown')}")
         print(f"Claim Validity: {review_packet_obj.claim_validity}")
         print(f"Warranty Coverage: {review_packet_obj.warranty_coverage}")
         print(f"Decision: {review_packet_obj.decision}")
         print(f"Confidence Score: {review_packet_obj.confidence_score:.2f}")
-        print(f"Policy Document: {review_packet_obj.policy_doc_selected if hasattr(review_packet_obj, 'policy_doc_selected') else 'N/A'}")
+        print(f"Policy Document: {state.get('policy_doc_selected', 'N/A')}")
         print(f"\nEvidence Info:")
-        print(evidence_info)
-        # evidence = review_packet_obj.evidence_info
-        # print(f"  Model Number: {evidence.get('ModelNumber', 'N/A')}")
-        # print(f"  Serial Number: {evidence.get('SerialNumber', 'N/A')}")
-        # print(f"  Validity: {evidence.get('validity', 'N/A')}")
+        print(f"  Model Number: {evidence_info.get('ModelNumber', 'N/A')}")
+        print(f"  Serial Number: {evidence_info.get('SerialNumber', 'N/A')}")
+        attachments_text = evidence_info.get('attachments_analysis', 'N/A')
+        if attachments_text and attachments_text != 'N/A':
+            # Display full attachment analysis if available
+            print(f"  Attachments Analysis:")
+            for line in attachments_text.split('\n')[:10]:  # Show first 10 lines
+                print(f"    {line}")
+        else:
+            print(f"  Attachments: N/A")
+        print(f"  Validity Assessment: {evidence_info.get('validity', 'N/A')}")
         print(f"\nReasons ({len(review_packet_obj.reasons)}):")
         for i, reason in enumerate(review_packet_obj.reasons, 1):
             print(f"  {i}. {reason}")
@@ -164,9 +357,12 @@ def rag_recommendation_agent(state: PipelineState) -> PipelineState:
         return state
         
     except Exception as e:
-        logging.error(f"Error in RAG recommendation agent: {e}")
-        print(f"\n⚠️  Error in RAG processing: {e}")
-        print("Creating fallback recommendation...\n")
+        logging.error(f"Error in RAG recommendation agent: {e}", exc_info=True)
+        print(f"\n❌ Error in RAG processing: {e}")
+        print(f"\nFull traceback:")
+        import traceback
+        traceback.print_exc()
+        print("\nCreating fallback recommendation...\n")
         
         # Create fallback review packet
         fallback_packet = {
@@ -449,6 +645,7 @@ Write the complete email body (do not include subject line or from/to fields).""
         "original_date": customer_email.get("date", ""),
         "claim_id": review_packet.get("claim_id", ""),
         "decision_type": prompt_type,
+        "customer_email_reference": customer_email.get("filename", "unknown"),
         "attachments": []
     }
     
@@ -462,6 +659,7 @@ Write the complete email body (do not include subject line or from/to fields).""
     print(f"Type: {prompt_type.upper()}")
     print(f"To: {response_email_data['to']}")
     print(f"Subject: {response_email_data['subject']}")
+    print(f"Reference: {response_email_data.get('customer_email_reference', 'unknown')}")
     print("\n" + "-"*80)
     print("EMAIL BODY:")
     print("-"*80)
@@ -594,6 +792,9 @@ def process_mailbox(inbox_dir: str = "./inbox"):
     adapter = MockMailboxAdapter(inbox_dir=inbox_dir, poll_interval=2.0)
     
     results = []
+    triage_decisions = []
+    claim_decisions = []
+    
     for i, email in enumerate(adapter.read_all_once(), 1):
         print(f"\n{'='*80}")
         print(f"📨 PROCESSING EMAIL {i}")
@@ -603,33 +804,73 @@ def process_mailbox(inbox_dir: str = "./inbox"):
         result = workflow.invoke({"customer_email": email})
         results.append(result)
         
+        # Record triage decision
+        triage_record = record_triage_decision(
+            email=email,
+            triage_result=result.get("email_info", {}),
+            confidence=result.get("claims_process_confidence", 0)
+        )
+        triage_decisions.append(triage_record)
+        
+        # Record claim decision (if warranty claim)
+        if result.get("triage_category") == "warranty" and result.get("review_packet"):
+            claim_record = record_claim_decision(
+                email=email,
+                triage_result=result.get("email_info", {}),
+                review_packet=result.get("review_packet", {}),
+                human_response=result.get("human_response"),
+                status="human" if result.get("human_response") else "auto"
+            )
+            claim_decisions.append(claim_record)
+        
         print(f"\n✓ Email {i} processing complete")
+        print(f"  Category: {result.get('triage_category', 'unknown').upper()}")
         print(f"  Final Action: {result.get('final_action', 'unknown')}\n")
     
-    # Summary
+    # Save all decisions to files
+    print("\n" + "="*80)
+    print("📝 RECORDING DECISIONS")
+    print("="*80)
+    
+    if triage_decisions:
+        save_decisions_to_file(triage_decisions, f"triage_decisions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
+    
+    if claim_decisions:
+        save_decisions_to_file(claim_decisions, f"claim_decisions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
+    
+    # Generate and display summary
+    all_decisions = triage_decisions
+    summary_stats = generate_decision_summary(all_decisions)
+    
     print("\n" + "="*80)
     print(f"📊 PROCESSING SUMMARY - {len(results)} emails processed")
     print("="*80)
     
-    summary = {"spam": 0, "warranty": 0, "non_warranty": 0, "completed": 0, "aborted": 0}
-    for result in results:
-        category = result.get("triage_category", "unknown")
-        if category in summary:
-            summary[category] += 1
-        
-        final_action = result.get("final_action", "")
-        if "completed" in final_action:
-            summary["completed"] += 1
-        elif "aborted" in final_action:
-            summary["aborted"] += 1
+    print(f"\nTriage Breakdown:")
+    print(f"  Spam: {summary_stats['triage_breakdown']['spam']}")
+    print(f"  Warranty Claims: {summary_stats['triage_breakdown']['warranty']}")
+    print(f"  Non-Warranty: {summary_stats['triage_breakdown']['non_warranty']}")
     
-    print(f"\nCategories:")
-    print(f"  Spam: {summary['spam']}")
-    print(f"  Warranty Claims: {summary['warranty']}")
-    print(f"  Non-Warranty: {summary['non_warranty']}")
-    print(f"\nOutcomes:")
-    print(f"  Completed & Sent: {summary['completed']}")
-    print(f"  Aborted/Rejected: {summary['aborted']}")
+    print(f"\nClaim Decisions ({len(claim_decisions)} warranty claims):")
+    print(f"  Approved: {summary_stats['claim_decisions']['approved']}")
+    print(f"  Rejected: {summary_stats['claim_decisions']['rejected']}")
+    print(f"  Escalated: {summary_stats['claim_decisions']['escalated']}")
+    
+    print(f"\nConfidence Metrics:")
+    print(f"  Average: {summary_stats['confidence_stats']['average_confidence']:.2%}")
+    print(f"  Highest: {summary_stats['confidence_stats']['highest_confidence']:.2%}")
+    print(f"  Lowest: {summary_stats['confidence_stats']['lowest_confidence']:.2%}")
+    
+    if summary_stats['human_overrides'] > 0:
+        print(f"\nHuman Overrides: {summary_stats['human_overrides']}")
+    
+    # Save summary
+    summary_file = f"decision_logs/summary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    os.makedirs("decision_logs", exist_ok=True)
+    with open(summary_file, "w", encoding="utf-8") as f:
+        json.dump(summary_stats, f, indent=2, ensure_ascii=False)
+    print(f"\n✅ Summary saved to {summary_file}")
+    
     print("="*80 + "\n")
     
     return results

@@ -1,0 +1,222 @@
+[
+  {
+    "timestamp": "2026-01-21T18:05:21.480451",
+    "decision_status": "human",
+    "email_from": "emily.james@gmail.com",
+    "email_subject": "Urgent Warranty Claim - BreezeLite Everyday Hairdryer",
+    "product_model": "N/A",
+    "claim_id": "CLAIM-20260121-180511",
+    "triage_category": "warranty",
+    "claim_validity": "Valid",
+    "warranty_coverage": "Partially Covered",
+    "ai_decision": "Escalate for Further Review",
+    "confidence_score": 0.78,
+    "human_override": "approve",
+    "reasons_count": 3,
+    "reasons": [
+      "The claim was filed within the 3‑month warranty window (purchase March 15, 2026; claim June 1, 2026).",
+      "The reported electrical fault (sparks, burning) is a defect in materials/workmanship and is covered by the warranty."
+    ],
+    "notes": "The issue is legitimate and falls within the warranty period, but the claim lacks the mandatory video evidence. Until the required video is supplied, "
+  },
+  {
+    "timestamp": "2026-01-21T18:07:05.910711",
+    "decision_status": "human",
+    "email_from": "robert.johnson@email.com",
+    "email_subject": "Power Cord Fraying - BLD-150 Safety Concern",
+    "product_model": "N/A",
+    "claim_id": "CLAIM-20260121-180539",
+    "triage_category": "warranty",
+    "claim_validity": "Valid",
+    "warranty_coverage": "Partially Covered",
+    "ai_decision": "Escalate for Further Review",
+    "confidence_score": 0.78,
+    "human_override": "approve",
+    "reasons_count": 3,
+    "reasons": [
+      "The claim was filed within the three‑month warranty window (purchase 2026‑03‑08, claim 2026‑06‑06).",
+      "Power‑cord fraying is listed as a defect in workmanship/materials and is not excluded by the policy."
+    ],
+    "notes": "The issue is covered by the warranty and falls within the coverage period, but lack of evidence prevents immediate approval. Further verification is n"
+  },
+  {
+    "timestamp": "2026-01-21T18:07:39.097332",
+    "decision_status": "human",
+    "email_from": "nancy.garcia@email.com",
+    "email_subject": "Sound Dampening Foam Degradation - BLD-Quiet Care",
+    "product_model": "N/A",
+    "claim_id": "CLAIM-20260121-180713",
+    "triage_category": "warranty",
+    "claim_validity": "Uncertain",
+    "warranty_coverage": "Partially Covered",
+    "ai_decision": "Escalate for Further Review",
+    "confidence_score": 0.78,
+    "human_override": "approve",
+    "reasons_count": 3,
+    "reasons": [
+      "The claim was filed within the 3‑month warranty window (purchase 2026‑05‑02, claim 2026‑06‑04).",
+      "Foam degradation is a defect in workmanship/materials and is not listed among policy exclusions."
+    ],
+    "notes": "The issue appears to be covered by the 3‑month warranty, but lack of supporting documentation prevents immediate approval. Further evidence is needed "
+  },
+  {
+    "timestamp": "2026-01-21T18:08:13.497259",
+    "decision_status": "human",
+    "email_from": "james.mitchell@salon.com",
+    "email_subject": "Water Damage Warranty Claim - BLD-2000 Pro-Salon",
+    "product_model": "N/A",
+    "claim_id": "CLAIM-20260121-180756",
+    "triage_category": "warranty",
+    "claim_validity": "Invalid",
+    "warranty_coverage": "Not Covered",
+    "ai_decision": "Reject Claim",
+    "confidence_score": 0.96,
+    "human_override": "approve",
+    "reasons_count": 3,
+    "reasons": [
+      "The damage resulted from immersion in water, which is explicitly listed as an exclusion in the BreezeLite warranty.",
+      "Although the claim was filed within the three‑month warranty window, the exclusion overrides the time‑frame eligibility."
+    ],
+    "notes": "The claim falls outside warranty coverage due to the water‑immersion exclusion and insufficient evidence, leading to a confident rejection decision."
+  },
+  {
+    "timestamp": "2026-01-21T18:08:34.284912",
+    "decision_status": "human",
+    "email_from": "sarah.thompson@email.com",
+    "email_subject": "Cord Wrapping Issue - BLD-150 Everyday Dryer",
+    "product_model": "N/A",
+    "claim_id": "CLAIM-20260121-180822",
+    "triage_category": "warranty",
+    "claim_validity": "Valid",
+    "warranty_coverage": "Not Covered",
+    "ai_decision": "Reject Claim",
+    "confidence_score": 0.94,
+    "human_override": "approve",
+    "reasons_count": 3,
+    "reasons": [
+      "The failure is attributed to user‑induced damage (tight cord wrapping), which is an explicit exclusion in the BreezeLite warranty terms.",
+      "The customer did not provide required documentation: receipt photo, product serial number, or visual evidence of the defect."
+    ],
+    "notes": "The claim was submitted 2.5 months after purchase, satisfying the warranty period, but the reported cause is classified as misuse and the required pro"
+  },
+  {
+    "timestamp": "2026-01-21T18:09:28.358637",
+    "decision_status": "human",
+    "email_from": "michael.rodriguez@email.com",
+    "email_subject": "Motor Failure Within Warranty - BLD-Turbo 2400",
+    "product_model": "N/A",
+    "claim_id": "CLAIM-20260121-180850",
+    "triage_category": "warranty",
+    "claim_validity": "Uncertain",
+    "warranty_coverage": "Partially Covered",
+    "ai_decision": "Escalate for Further Review",
+    "confidence_score": 0.78,
+    "human_override": "approve",
+    "reasons_count": 3,
+    "reasons": [
+      "The claim was filed within the warranty period and the motor failure is a covered defect.",
+      "Required supporting documentation (receipt photo and visual evidence of the defect) was not provided, making the evidence insufficient for validation."
+    ],
+    "notes": "The claim appears legitimate and falls within warranty coverage, but missing evidence prevents final validation. Escalate to a reviewer after the cust"
+  },
+  {
+    "timestamp": "2026-01-21T18:09:49.327710",
+    "decision_status": "human",
+    "email_from": "patricia.wong@email.com",
+    "email_subject": "Broken Handle Clip - BLD-Travel Harmony (Out of Warranty)",
+    "product_model": "N/A",
+    "claim_id": "CLAIM-20260121-180937",
+    "triage_category": "warranty",
+    "claim_validity": "Invalid",
+    "warranty_coverage": "Not Covered",
+    "ai_decision": "Reject Claim",
+    "confidence_score": 0.93,
+    "human_override": "approve",
+    "reasons_count": 3,
+    "reasons": [
+      "The claim is filed ~6 months after purchase, exceeding the 3‑month limited warranty period.",
+      "The customer did not provide required proof of purchase, serial number, or usable photographic evidence."
+    ],
+    "notes": "Patricia Wong's request concerns a broken folding handle on a BreezeLite BLD-Travel Harmony hairdryer purchased in Dec 2025. The 3‑month warranty has "
+  },
+  {
+    "timestamp": "2026-01-21T18:10:38.595975",
+    "decision_status": "human",
+    "email_from": "david.chen@email.com",
+    "email_subject": "High-Impact Drop - BLD-Sonic 5 Damage",
+    "product_model": "N/A",
+    "claim_id": "CLAIM-20260121-181019",
+    "triage_category": "warranty",
+    "claim_validity": "Invalid",
+    "warranty_coverage": "Not Covered",
+    "ai_decision": "Reject Claim",
+    "confidence_score": 0.95,
+    "human_override": "approve",
+    "reasons_count": 3,
+    "reasons": [
+      "The damage resulted from an accidental drop, which is expressly excluded under the BreezeLite Global warranty.",
+      "The customer did not provide the required receipt or photographic evidence, making the claim insufficiently substantiated."
+    ],
+    "notes": "The claim falls within the warranty period but is excluded due to accident damage and insufficient evidence, leading to a rejection with high confiden"
+  },
+  {
+    "timestamp": "2026-01-21T18:11:10.197802",
+    "decision_status": "human",
+    "email_from": "angela.martinez@email.com",
+    "email_subject": "Heating Element Defect - BLD-X1 Infrared",
+    "product_model": "N/A",
+    "claim_id": "CLAIM-20260121-181100",
+    "triage_category": "warranty",
+    "claim_validity": "Uncertain",
+    "warranty_coverage": "Partially Covered",
+    "ai_decision": "Escalate for Further Review",
+    "confidence_score": 0.77,
+    "human_override": "approve",
+    "reasons_count": 3,
+    "reasons": [
+      "The purchase date (April 10, 2026) is within the 3‑month warranty window at the time of claim (June 11, 2026).",
+      "Failure of the infrared lamp is a defect in workmanship/materials, which is explicitly covered by the BreezeLite warranty."
+    ],
+    "notes": "The claim appears legitimate and falls within the warranty period, but lack of required documentation prevents definitive approval. Escalate to reques"
+  },
+  {
+    "timestamp": "2026-01-21T18:11:53.049474",
+    "decision_status": "human",
+    "email_from": "kevin.lee.salon@business.com",
+    "email_subject": "Salon Professional - BLD-Digital Elite Heat Setting Issue",
+    "product_model": "N/A",
+    "claim_id": "CLAIM-20260121-181142",
+    "triage_category": "warranty",
+    "claim_validity": "Uncertain",
+    "warranty_coverage": "Not Covered",
+    "ai_decision": "Reject Claim",
+    "confidence_score": 0.78,
+    "human_override": "approve",
+    "reasons_count": 3,
+    "reasons": [
+      "The product is being used in a commercial salon, which is an explicit exclusion in the BreezeLite warranty.",
+      "No receipt or photographic evidence of the defect was provided, making the evidence insufficient to substantiate the claim."
+    ],
+    "notes": "The claim was filed within the 3‑month warranty window, but the product's commercial use and lack of supporting evidence render it ineligible for warr"
+  },
+  {
+    "timestamp": "2026-01-21T18:12:26.609456",
+    "decision_status": "human",
+    "email_from": "lisa.brown@email.com",
+    "email_subject": "Diffuser Attachment Damage - BLD-Curl Master",
+    "product_model": "N/A",
+    "claim_id": "CLAIM-20260121-181219",
+    "triage_category": "warranty",
+    "claim_validity": "Valid",
+    "warranty_coverage": "Not Covered",
+    "ai_decision": "Reject Claim",
+    "confidence_score": 0.94,
+    "human_override": "approve",
+    "reasons_count": 3,
+    "reasons": [
+      "The broken diffuser prong is explicitly listed as a non‑covered item in the warranty policy (physical damage to the diffuser attachment).",
+      "Required evidence (receipt and photos of the broken part) was not provided, making the claim insufficiently documented."
+    ],
+    "notes": "The claim is genuine but falls under a policy exclusion and lacks the necessary documentation, so it cannot be honored under warranty."
+  }
+]

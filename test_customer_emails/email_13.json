@@ -1,0 +1,7 @@
+{
+  "subject": "URGENT: Your Bank Account Has Been Compromised!",
+  "from": "security@bankofamerica-verify.net",
+  "date": "2026-06-02",
+  "body": "Dear Customer,\n\nWe have detected unauthorized activity on your account. Your BreezeLite online purchase has triggered our fraud alert system.\n\nTo restore access to your account and prevent further unauthorized charges, you must immediately verify your identity:\n\nClick here to verify: http://verify-bank-account-urgent.com/security-check\n\nYou will need to provide:\n- Your full name\n- Social Security Number\n- Bank account and routing numbers\n- Credit card information\n\nFail to verify within 2 hours and your account will be permanently locked.\n\nUrgently,\nBank Security Team",
+  "attachments": []
+}

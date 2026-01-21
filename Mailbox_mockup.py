@@ -45,6 +45,8 @@ class MockMailboxAdapter:
 
             try:
                 email_data = self._load_json_email(json_path)
+                # Add filename for reference
+                email_data["filename"] = filename
                 yield email_data
                 # self._mark_processed(json_path, email_data)
             except Exception as exc:
@@ -62,6 +64,8 @@ class MockMailboxAdapter:
 
             try:
                 email_data = self._load_json_email(json_path)
+                # Add filename for reference
+                email_data["filename"] = filename
                 yield email_data
                 # self._mark_processed(json_path, email_data)
             except Exception as exc:
