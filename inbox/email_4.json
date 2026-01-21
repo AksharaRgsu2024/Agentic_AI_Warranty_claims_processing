@@ -1,0 +1,16 @@
+{
+    "subject": "URGENT: Burning Smell from SalonMax AirFlow Dryer",
+    "from": "john.doe@gmail.com",
+    "date": "2026-01-17",
+    "body": "Hello,\n\nMy SalonMax AirFlow (Model SMA-300) emits a burning smell within seconds of switching on. I stopped using it immediately due to safety concerns. This is extremely alarming. I request immediate assistance under warranty.\n\nSincerely,\nJohn Doe\nPhone: +1-555-003-3003\nEmail: john.doe@gmail.com",
+    "attachments": [
+      {
+        "file_name": "receipt_sma300.png",
+        "content_type": "image/png"
+      },
+      {
+        "file_name": "smell_issue_sma300.png",
+        "content_type": "image/png"
+      }
+    ]
+  }

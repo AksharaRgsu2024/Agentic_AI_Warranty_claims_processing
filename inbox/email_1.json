@@ -1,0 +1,17 @@
+{
+"subject" : "Urgent Warranty Claim - BreezeLite Everyday Hairdryer",
+"from" : "emily.james@gmail.com",
+"date" : "2026-06-01",
+"body" :
+"Dear Warranty Support Team,\n\nI am writing to file an urgent warranty claim for my BreezeLite Everyday Dryer (Model BLD-150), which is still within the 3-month warranty period.\n\nDuring normal use, the hairdryer began producing visible sparks and loud popping sounds near the safety plug and power connection. Due to the seriousness of this issue and potential electrical hazard, I immediately stopped using the product.\n\nThe hairdryer has not been dropped, exposed to water, or modified in any way, and it has only been used according to the user manual.\n\nPlease find attached a copy of the purchase receipt and images clearly showing the damage and sparking near the safety plug. I kindly request instructions on the next steps for inspection, replacement, or refund under the warranty policy.\n\nThank you for your prompt assistance.\n\nSincerely,\nEMily James\nPhone: +1-555-123-4567\nEmail: emily.james@gmail.com",
+"attachments": [
+    {
+      "file_name": "receipt_1.png",
+      "content_type": "image/png"
+    },
+    {
+      "file_name": "hairdryer_breezelite_1.png",
+      "content_type": "image/png"
+    }
+  ]
+}
