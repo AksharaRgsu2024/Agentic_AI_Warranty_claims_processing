@@ -229,37 +229,6 @@ flowchart TD
 - Generates summary statistics
 - Tracks approval rates and confidence scores
 
-### Data Flow
-
-```
-Customer Email (JSON)
-    ↓
-    └─→ EmailTriageAgent
-            ├→ Category: warranty/spam/non_warranty
-            ├→ Confidence Score
-            └→ Product Model Extraction
-                ↓
-                └─→ RAGRecommendationAgent (if warranty)
-                        ├→ Policy Documents (from Pinecone)
-                        ├→ Policy Analysis (LLM)
-                        └→ Review Packet (Structured)
-                            ↓
-                            └─→ HumanReviewPacket
-                                    ├→ Claim Validity
-                                    ├→ Warranty Coverage
-                                    ├→ Decision
-                                    ├→ Confidence Score
-                                    ├→ Reasons
-                                    └─→ Next Steps
-                                        ↓
-                                        └─→ Response Email
-                                                ├→ Approval/Rejection/Escalation
-                                                └─→ Audit Log
-```
-      ├→ Reject → Abort → End
-      └→ Revise → Rerun Workflow
-```
-
 ## Logging
 
 Enable debug logging by setting environment variable:
@@ -301,8 +270,6 @@ All decisions are saved as JSON for audit and reporting:
 
 - [ ] Database integration for claim history
 - [ ] Advanced confidence thresholding for automatic approvals
-- [ ] Multi-language support
 - [ ] Batch processing with progress reporting
 - [ ] Custom policy template system
 - [ ] Integration with email systems (Gmail, Outlook)
-- [ ] Machine learning model fine-tuning on historical decisions
