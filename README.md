@@ -57,7 +57,7 @@ Agentic_AI_Warranty_claims_processing/
    ```
 
 2. **Create environment and Install Dependencies**
-   Python version: 3.12.4
+   Python version: 3.13.0
    ```bash
    pip install -r requirements.txt
    ```
