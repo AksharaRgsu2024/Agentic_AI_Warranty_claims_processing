@@ -1,0 +1,21 @@
+{
+  "total_emails_processed": 5,
+  "triage_breakdown": {
+    "spam": 1,
+    "warranty": 4,
+    "non_warranty": 0
+  },
+  "claim_decisions": {
+    "approved": 0,
+    "rejected": 0,
+    "escalated": 4,
+    "not_applicable": 0
+  },
+  "confidence_stats": {
+    "average_confidence": 0.7050000000000001,
+    "highest_confidence": 0.78,
+    "lowest_confidence": 0.5
+  },
+  "human_overrides": 4,
+  "timestamp": "2026-01-21T21:07:01.916316"
+}

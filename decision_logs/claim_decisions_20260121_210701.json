@@ -1,0 +1,82 @@
+[
+  {
+    "timestamp": "2026-01-21T21:05:38.092439",
+    "decision_status": "human",
+    "email_from": "emily.james@gmail.com",
+    "email_subject": "Urgent Warranty Claim - BreezeLite Everyday Hairdryer",
+    "product_model": "N/A",
+    "claim_id": "CLAIM-20260121-210517",
+    "triage_category": "warranty",
+    "claim_validity": "Uncertain",
+    "warranty_coverage": "Partially Covered",
+    "ai_decision": "Escalate for Further Review",
+    "confidence_score": 0.76,
+    "human_override": "approve",
+    "reasons_count": 3,
+    "reasons": [
+      "The reported sparking and popping sounds indicate a potential manufacturing defect, which is covered under the product warranty.",
+      "The customer did not provide a verifiable purchase date or receipt, so the three‑month warranty period cannot be confirmed."
+    ],
+    "notes": "The claim describes a serious safety issue that would be covered if it falls within the warranty period, but missing documentation prevents confirmati"
+  },
+  {
+    "timestamp": "2026-01-21T21:06:01.125928",
+    "decision_status": "human",
+    "email_from": "robert.johnson@email.com",
+    "email_subject": "Power Cord Fraying - BLD-150 Safety Concern",
+    "product_model": "N/A",
+    "claim_id": "CLAIM-20260121-210544",
+    "triage_category": "warranty",
+    "claim_validity": "Valid",
+    "warranty_coverage": "Covered",
+    "ai_decision": "Escalate for Further Review",
+    "confidence_score": 0.78,
+    "human_override": "approve",
+    "reasons_count": 3,
+    "reasons": [
+      "The claim was filed within the three‑month warranty window (purchase date March 8, 2026; claim date June 6, 2026).",
+      "The reported frayed power‑cord insulation is a defect in workmanship/materials, which is explicitly covered by the BreezeLite warranty."
+    ],
+    "notes": "The issue appears to be a covered defect and falls within the warranty period, but missing documentation prevents immediate approval. Escalate to gath"
+  },
+  {
+    "timestamp": "2026-01-21T21:06:27.757413",
+    "decision_status": "human",
+    "email_from": "nancy.garcia@email.com",
+    "email_subject": "Sound Dampening Foam Degradation - BLD-Quiet Care",
+    "product_model": "N/A",
+    "claim_id": "CLAIM-20260121-210608",
+    "triage_category": "warranty",
+    "claim_validity": "Valid",
+    "warranty_coverage": "Covered",
+    "ai_decision": "Escalate for Further Review",
+    "confidence_score": 0.78,
+    "human_override": "approve",
+    "reasons_count": 3,
+    "reasons": [
+      "The claim was filed within the three‑month warranty window (purchase 2026‑05‑02, claim 2026‑06‑04).",
+      "Foam degradation is not listed among the explicit exclusions and is likely a material defect, which is covered by the warranty."
+    ],
+    "notes": "The issue appears to be a covered material defect within the active warranty period, but lack of evidence prevents immediate approval. Escalate for fu"
+  },
+  {
+    "timestamp": "2026-01-21T21:07:01.911735",
+    "decision_status": "human",
+    "email_from": "james.mitchell@salon.com",
+    "email_subject": "Water Damage Warranty Claim - BLD-2000 Pro-Salon",
+    "product_model": "N/A",
+    "claim_id": "CLAIM-20260121-210650",
+    "triage_category": "warranty",
+    "claim_validity": "Uncertain",
+    "warranty_coverage": "Not Covered",
+    "ai_decision": "Escalate for Further Review",
+    "confidence_score": 0.5,
+    "human_override": "reject",
+    "reasons_count": 2,
+    "reasons": [
+      "Automated processing encountered technical issues",
+      "Manual review required for accurate assessment"
+    ],
+    "notes": "Error during automated processing: Error code: 400 - {'error': {'message': \"Parsing failed. The model generated output that could not b"
+  }
+]

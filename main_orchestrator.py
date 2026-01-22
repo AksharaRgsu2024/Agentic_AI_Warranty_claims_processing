@@ -107,7 +107,7 @@ def save_decisions_to_file(decisions: List[dict], filename: str = "decision_log.
     logging.info(f"✅ Decisions saved to {filepath}")
 
 
-def generate_decision_summary(decisions: List[dict]) -> dict:
+def generate_decision_summary(triage_decisions: List[dict], claim_decisions: List[dict]) -> dict:
     """
     Generate a summary of all decisions made
     
@@ -118,7 +118,7 @@ def generate_decision_summary(decisions: List[dict]) -> dict:
         Dictionary with summary statistics
     """
     summary = {
-        "total_emails_processed": len(decisions),
+        "total_emails_processed": len(triage_decisions),
         "triage_breakdown": {
             "spam": 0,
             "warranty": 0,
@@ -139,17 +139,18 @@ def generate_decision_summary(decisions: List[dict]) -> dict:
         "timestamp": datetime.now().isoformat()
     }
     
-    if not decisions:
+    if not triage_decisions:
         return summary
     
     confidence_scores = []
     
-    for decision in decisions:
+    for decision in triage_decisions:
         # Count triage categories
         category = decision.get("triage_category", "unknown")
         if category in summary["triage_breakdown"]:
             summary["triage_breakdown"][category] += 1
-        
+
+    for decision in claim_decisions:    
         # Count claim decisions
         ai_decision = decision.get("ai_decision", "").lower()
         if "approve" in ai_decision:
@@ -832,15 +833,15 @@ def process_mailbox(inbox_dir: str = "./inbox"):
     print("📝 RECORDING DECISIONS")
     print("="*80)
     
-    if triage_decisions:
-        save_decisions_to_file(triage_decisions, f"triage_decisions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
+    # if triage_decisions:
+    #     save_decisions_to_file(triage_decisions, f"triage_decisions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
     
     if claim_decisions:
         save_decisions_to_file(claim_decisions, f"claim_decisions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
     
     # Generate and display summary
-    all_decisions = triage_decisions
-    summary_stats = generate_decision_summary(all_decisions)
+    
+    summary_stats = generate_decision_summary(triage_decisions, claim_decisions)
     
     print("\n" + "="*80)
     print(f"📊 PROCESSING SUMMARY - {len(results)} emails processed")
