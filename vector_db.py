@@ -9,7 +9,9 @@ from dotenv import load_dotenv
 import glob
 import re
 load_dotenv()
-
+from configparser import ConfigParser
+config=ConfigParser()
+config.read('model_config.ini')
 class VectorDB:
     def __init__(self, index_name,embedding_model= "llama-text-embed-v2"):
         self.index_name = index_name
@@ -113,7 +115,7 @@ class VectorDB:
 
     
 if __name__ == "__main__":
-    vector_db = VectorDB()
-    vector_db.process_upsert("BreezeLite_Professional_Manuals/")
+    vector_db = VectorDB(index_name=config['VECTOR_DB']['index_name'])
+    vector_db.process_upsert("warranty_documents/")
     results = vector_db.query("Is water immersion damage covered under warranty for BreezeLite BLD 150 hair dryers?", filters={"source": {"$eq": "BreezeLite_Professional_Manuals/BreezeLite_BLD-150_Everyday.pdf"}})
     print("Query Results:", results)
