@@ -47,7 +47,6 @@ Agentic_AI_Warranty_claims_processing/
 ├── warranty_documents/            # Policy PDFs indexed in vector DB
 ├── decision_logs/                 # Output: Decision records and summaries
 ├── response_emails/               # Output: Generated response emails
-└── inbox/                         # Optional: Live email processing directory
 ```
 
 ## Installation
@@ -63,30 +62,24 @@ Agentic_AI_Warranty_claims_processing/
    ```
 
 3. **Set Environment Variables**
-   ```bash
-   export GROQ_API_KEY="your-groq-api-key"
-   export PINECONE_API_KEY="your-pinecone-api-key"  # If using Pinecone
-   ```
-
-4. **Create .env File** (Alternative to export)
+  Create .env File and set the below environment variables with your API keys:
    ```
    GROQ_API_KEY=your-groq-api-key
    PINECONE_API_KEY=your-pinecone-api-key
    ```
+4. **Initial Vector database setup**
+    - Optional: Run the generate_manuals.py code to generate the policy pdf documents (if not present in the warranty documents folder)
+
+    - Index and upsert documents to Pinecone vector database (one time only):
+    ```
+    python vector_db.py
+    ```
+
+
 
 ## Configuration
 
-Edit `model_config.ini` to customize:
-
-```ini
-[MODEL_CONFIG]
-vlm_model=mixtral-8x7b-32768          # Triage agent model
-rag_model=mixtral-8x7b-32768          # RAG recommendation model
-response_drafter_model=mixtral-8x7b-32768  # Response drafting model
-
-[EMAILS]
-customer_mails=test_customer_emails   # Email input directory
-```
+Edit `model_config.ini` to customize LLM models and input and output email directories.
 
 ## Execution
 
@@ -273,3 +266,253 @@ All decisions are saved as JSON for audit and reporting:
 - [ ] Batch processing with progress reporting
 - [ ] Custom policy template system
 - [ ] Integration with email systems (Gmail, Outlook)
+- [ ] Machine learning model fine-tuning on historical decisions
+
+## Web Interface - Streamlit
+
+The system includes a modern web UI built with Streamlit for easy interaction without command-line usage.
+
+### Features
+
+- **Dashboard**: View statistics, trends, and recent decisions
+- **Process Claim**: Submit and process new warranty claims
+- **Review Queue**: View and manage pending reviews
+- **History**: Search and export past decisions
+- **Settings**: Configure API keys and view system information
+
+### Quick Start - Streamlit
+
+1. **Install Dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Set Environment Variables**
+   ```bash
+   export GROQ_API_KEY="your-groq-api-key"
+   export PINECONE_API_KEY="your-pinecone-api-key"
+   ```
+
+3. **Run the App**
+   ```bash
+   # Using the shell script
+   bash run_streamlit.sh
+   
+   # Or directly with Streamlit
+   streamlit run app.py
+   ```
+
+4. **Access the Web Interface**
+   - Open browser to: **http://localhost:8501**
+   - The app will auto-reload when files change
+
+### Streamlit Interface Pages
+
+#### 📊 Dashboard
+- Key metrics (total processed, approvals, confidence)
+- Triage breakdown visualization
+- Claim decision pie chart
+- Recent decisions table
+
+#### 📧 Process Claim
+- Multiple input methods:
+  - Paste email text
+  - Load test email
+  - Upload JSON file
+- Real-time triage results
+- RAG recommendation generation
+- Interactive human review section
+
+#### ⏳ Review Queue
+- View pending claims
+- Detailed review inspection
+- Reviewer information
+- Decision tracking
+
+#### 📋 History
+- Filter by decision type
+- Searchable history
+- CSV export functionality
+- Full decision audit trail
+
+#### ⚙️ Settings
+- API configuration
+- Model settings
+- System information
+- About section
+
+### Docker Deployment
+
+Deploy using Docker for isolated, reproducible environments:
+
+#### Build and Run
+```bash
+# Build image
+docker build -t warranty-claims-ai .
+
+# Run container
+docker run -p 8501:8501 \
+  -e GROQ_API_KEY="your-key" \
+  -e PINECONE_API_KEY="your-key" \
+  warranty-claims-ai
+```
+
+#### Docker Compose
+```bash
+# Configure environment
+cat > .env << EOF
+GROQ_API_KEY=your-groq-key
+PINECONE_API_KEY=your-pinecone-key
+EOF
+
+# Start service
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop service
+docker-compose down
+```
+
+### Cloud Deployment Options
+
+#### Streamlit Cloud (Free/Easiest)
+1. Push code to GitHub
+2. Go to [share.streamlit.io](https://share.streamlit.io)
+3. Connect GitHub account
+4. Deploy repository
+5. Set secrets in Streamlit Cloud dashboard
+
+#### AWS (Elastic Container Service)
+```bash
+# Build and push to ECR
+aws ecr get-login-password --region us-east-1 | \
+  docker login --username AWS --password-stdin <account-id>.dkr.ecr.us-east-1.amazonaws.com
+
+docker tag warranty-claims-ai:latest <account-id>.dkr.ecr.us-east-1.amazonaws.com/warranty-claims-ai:latest
+
+docker push <account-id>.dkr.ecr.us-east-1.amazonaws.com/warranty-claims-ai:latest
+```
+
+#### Heroku
+```bash
+# Login and create app
+heroku login
+heroku create warranty-claims-app
+
+# Set environment variables
+heroku config:set GROQ_API_KEY="your-key"
+heroku config:set PINECONE_API_KEY="your-key"
+
+# Deploy
+git push heroku main
+```
+
+#### Railway/Render/Fly.io
+- All support Docker deployment
+- Connect GitHub repo
+- Auto-deploy on push
+- Set environment variables in dashboard
+
+### Environment Variables
+
+Required for full functionality:
+```bash
+GROQ_API_KEY          # Required: API key for Groq LLM
+PINECONE_API_KEY      # Optional: API key for Pinecone vector DB
+LOG_LEVEL             # Optional: DEBUG, INFO, WARNING, ERROR (default: INFO)
+STREAMLIT_SERVER_PORT # Optional: Port for Streamlit (default: 8501)
+```
+
+### Performance Tuning
+
+#### For Better Performance
+```bash
+# Run with caching
+streamlit run app.py --logger.level=warning
+
+# Use session state efficiently
+# The app caches results to reduce API calls
+
+# Increase max upload size in .streamlit/config.toml
+# maxUploadSize = 500  # MB
+```
+
+#### Multi-page Optimization
+The Streamlit app uses radio buttons for navigation instead of pages for better performance and state management.
+
+### Troubleshooting Streamlit
+
+**Issue**: Port 8501 already in use
+```bash
+streamlit run app.py --server.port 8502
+```
+
+**Issue**: Changes not reloading
+```bash
+# Clear cache and restart
+rm -rf ~/.streamlit/cache
+streamlit run app.py --logger.level=debug
+```
+
+**Issue**: API errors in Streamlit
+- Check that environment variables are set before running
+- Use `streamlit run app.py --logger.level=debug` for detailed logs
+- Verify API keys have correct permissions
+
+**Issue**: Session state not persisting
+- Streamlit resets on code changes (intentional for development)
+- Use @st.cache_data for expensive computations
+- Session state persists within a user session
+
+### Development
+
+#### Project Structure (UI)
+```
+├── app.py                      # Main Streamlit application
+├── .streamlit/
+│   └── config.toml            # Streamlit configuration
+├── run_streamlit.sh           # Launch script
+├── Dockerfile                 # Docker image definition
+└── docker-compose.yml         # Multi-container orchestration
+```
+
+#### Creating New Pages
+
+To add new functionality:
+
+```python
+# Add to page selection
+page = st.sidebar.radio("Navigation", [..., "New Page"])
+
+# Add page section
+elif page == "New Page":
+    st.title("🆕 New Page")
+    # Add content here
+```
+
+#### Using Custom Components
+
+```python
+# Install custom components
+pip install streamlit-option-menu streamlit-pandas-profiling
+
+# Use in app
+from streamlit_option_menu import option_menu
+```
+
+### Monitoring
+
+Access logs and metrics:
+
+```bash
+# Container logs
+docker logs warranty-claims-ai -f
+
+# System metrics
+docker stats warranty-claims-ai
+
+# Streamlit metrics
+# Built into Streamlit at http://localhost:8501/metrics
+```
