@@ -87,7 +87,10 @@ Execute the console application:
 ```bash
 python3 main_orchestrator.py
 ```
-
+Execute streamlit application:
+```bash
+python3 -m streamlit app.py
+```
 This processes all emails in the configured inbox directory through the complete workflow:
 - Triages each email
 - Generates warranty recommendations
